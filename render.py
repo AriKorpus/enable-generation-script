@@ -1,11 +1,15 @@
 import os
 import subprocess
 import csv
+import time
 from stl import mesh
 import numpy as np
 import sys
 import yaml
 from multiprocessing import Pool
+
+def log(msg):
+    print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
 
 def checkSize(filePath, maxSize):
     vertices = mesh.Mesh.from_file(filePath).vectors.reshape(-1, 3)
@@ -22,10 +26,12 @@ def renderPart(args):
             cmd.extend(["-D", f"{key}=\"{val}\""])
         else:
             cmd.extend(["-D", f"{key}={val}"])
+    log(f"Rendering {part} -> {outputFile}")
     result = subprocess.run(cmd + [scadFile], capture_output=True, text=True)
     if result.returncode != 0 or not os.path.exists(outputFile):
-        print(f"Failed to render {part}: {result.stderr}")
+        log(f"ERROR: Failed to render {part}: {result.stderr.strip()}")
         return None
+    log(f"Done: {part}")
     return outputFile
 
 def renderSplittablePart(splitConfig, params, scadParams, scadFile, openscadConfig, materialDir, maxSize, workers):
@@ -35,6 +41,7 @@ def renderSplittablePart(splitConfig, params, scadParams, scadFile, openscadConf
     for option in options:
         numPieces = option['pieces']
         partNames = option['parts']
+        log(f"Trying {splitConfig['name']} in {numPieces} piece(s): {partNames}")
         tasks = [(part, {**params, splitParam: numPieces}, scadParams, scadFile, openscadConfig, f"{materialDir}/{part}.stl") for part in partNames]
 
         if len(tasks) == 1:
@@ -45,8 +52,10 @@ def renderSplittablePart(splitConfig, params, scadParams, scadFile, openscadConf
 
         if all(os.path.exists(f"{materialDir}/{part}.stl") for part in partNames) and \
            all(checkSize(f"{materialDir}/{part}.stl", maxSize) for part in partNames):
+            log(f"{splitConfig['name']} fits in {numPieces} piece(s)")
             return {splitParam: numPieces}
 
+        log(f"{splitConfig['name']} too large in {numPieces} piece(s), trying next split")
         for part in partNames:
             path = f"{materialDir}/{part}.stl"
             if os.path.exists(path):
@@ -55,7 +64,7 @@ def renderSplittablePart(splitConfig, params, scadParams, scadFile, openscadConf
     lastOption = options[-1]
     maxPieces = lastOption['pieces']
     maxPartNames = lastOption['parts']
-    print(f"WARNING: {splitConfig['name']} exceeds max size even in {maxPieces} pieces. Keeping {maxPieces}-piece version.")
+    log(f"WARNING: {splitConfig['name']} exceeds max size even in {maxPieces} pieces, keeping {maxPieces}-piece version")
     tasks = [(part, {**params, splitParam: maxPieces}, scadParams, scadFile, openscadConfig, f"{materialDir}/{part}.stl") for part in maxPartNames]
     with Pool(workers) as pool:
         pool.map(renderPart, tasks)
@@ -63,6 +72,7 @@ def renderSplittablePart(splitConfig, params, scadParams, scadFile, openscadConf
 
 def processCase(caseData, config, workers):
     caseName = caseData[0]
+    log(f"Processing case: {caseName}")
     params = {}
     for scadParam, colIndex in config.get('csv_to_scad', {}).items():
         if colIndex < len(caseData):
@@ -96,8 +106,10 @@ def processCase(caseData, config, workers):
         for mat, parts in config['materials'].items()
         for part in parts if part not in splittableNames
     ]
+    log(f"Rendering {len(tasks)} parts for {caseName}")
     with Pool(workers) as pool:
         pool.map(renderPart, tasks)
+    log(f"Case complete: {caseName}")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
@@ -107,10 +119,14 @@ if __name__ == "__main__":
     csvPath = sys.argv[2]
     configDir = os.path.dirname(os.path.abspath(configPath))
 
+    log(f"Config: {configPath}")
+    log(f"Cases:  {csvPath}")
+
     with open(configPath) as f:
         config = yaml.safe_load(f)
 
     workers = config.get('num_workers', 4)
+    log(f"Workers: {workers}")
 
     for key in ['scad_file', 'output_dir']:
         if not os.path.isabs(config['paths'][key]):
@@ -125,7 +141,17 @@ if __name__ == "__main__":
         outputDir = os.path.join(outputDir, caseFolderName)
     os.makedirs(outputDir, exist_ok=True)
 
+    cases = []
     with open(csvPath) as f:
         next(f)
         for row in csv.reader(f):
-            processCase(row, config, workers)
+            cases.append(row)
+
+    log(f"Found {len(cases)} case(s)")
+    start = time.time()
+
+    for row in cases:
+        processCase(row, config, workers)
+
+    log(f"All done. Total time: {time.time() - start:.1f}s")
+    sys.exit(0)
