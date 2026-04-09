@@ -1,6 +1,6 @@
 # e-NABLE Prosthetics Generation Script
 
-Renders 3D-printable prosthetic parts from OpenSCAD templates based on patient measurements from CSV files — saves hours over manually rendering parts in OpenSCAD.
+Tool to automatically render 3D-printable prosthetic parts from OpenSCAD templates based on patient measurements from CSV files. Saves hours over manually rendering parts in OpenSCAD.
 
 ## Setup
 
