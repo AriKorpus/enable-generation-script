@@ -1,0 +1,95 @@
+num_workers: 4
+
+paths:
+  scad_file: 'source/Kwawu_2.1_Prosthetic_Arm-_Thermoform_Version.scad'
+  output_dir: '../../output'
+
+csv_to_scad:
+  LeftRight: 1
+  HandWidth: 2
+  ArmLength: 3
+  ForearmCircumference: 4
+  BicepCircumference: 5
+
+param_options:
+  LeftRight: [Left, Right]
+
+openscad:
+  executable_path: '/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD'
+
+scad_params:
+  PaddingThickness: 4
+  PalmBoltDiameter: 4
+  CoverPinDiameter: 6
+  ElbowBoltDiameter: 6
+  AutoElbowBoltDiameter: false
+  TensionerBoltDiameter: 2
+  GripLatch: 'Yes'
+  PencilHolder: 'Yes'
+
+splittable_parts:
+  - name: Arm
+    param: ArmPieces
+    options:
+      - pieces: 1
+        parts: [Arm1]
+      - pieces: 2
+        parts: [Arm1, Arm2]
+      - pieces: 4
+        parts: [Arm1, Arm2, Arm3, Arm4]
+  - name: Cover
+    param: CoverPieces
+    options:
+      - pieces: 1
+        parts: [Cover1]
+      - pieces: 2
+        parts: [Cover1, Cover2]
+      - pieces: 4
+        parts: [Cover1, Cover2, Cover3, Cover4]
+
+stl_validation:
+  max_size_mm: 300
+
+output:
+  case_folder_name: ''
+
+materials:
+  main:
+    - Arm
+    - Cover
+    - Cuff
+    - Palm
+    - PalmTop
+    - WristArmAttach
+    - WristBolt
+    - Tensioner
+    - IndexFingerEnd
+    - IndexFingerPhalanx
+    - MiddleFingerEnd
+    - MiddleFingerPhalanx
+    - PinkyFingerEnd
+    - PinkyFingerPhalanx
+    - RingFingerEnd
+    - RingFingerPhalanx
+    - ThumbEnd
+    - ThumbPhalanx
+    - WhippleTreePrimary
+    - WhippleTreeSecondary
+    - LatchSlider
+    - LatchPin
+    - LatchTeeth
+  flexible:
+    - Hinge4Knuckles
+    - HingeIndexFinger
+    - HingeMiddleFinger
+    - HingePinkyFinger
+    - HingeRingFinger
+    - HingeThumb
+    - HingeThumbKnuckle
+    - PencilHolderCover
+    - WristCompressionBushing
+    - LatchHinge
+  support:
+    - Thermoform1
+    - Thermoform2
+    - Thermoform3

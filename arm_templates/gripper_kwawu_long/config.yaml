@@ -1,0 +1,64 @@
+num_workers: 4
+
+paths:
+  scad_file: 'source/Gripper_Kwawu_Below_Elbow_Long.scad'
+  output_dir: '../../output'
+
+csv_to_scad:
+  LeftRight: 1
+  HandLength: 2
+  ArmLength: 3
+  ForearmCircumference: 4
+  BicepCircumference: 5
+
+param_options:
+  LeftRight: [Left, Right]
+
+openscad:
+  executable_path: '/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD'
+
+scad_params:
+  PaddingThickness: 4
+  AutoElbowBoltDiameter: false
+  CoverPinDiameter: 8
+  ElbowBoltDiameter: 6
+
+splittable_parts:
+  - name: Arm
+    param: ArmPieces
+    options:
+      - pieces: 1
+        parts: [Arm1]
+      - pieces: 2
+        parts: [Arm1, Arm2]
+      - pieces: 4
+        parts: [Arm1, Arm2, Arm3, Arm4]
+  - name: Cover
+    param: CoverPieces
+    options:
+      - pieces: 1
+        parts: [Cover1]
+      - pieces: 2
+        parts: [Cover1, Cover2]
+      - pieces: 4
+        parts: [Cover1, Cover2, Cover3, Cover4]
+
+stl_validation:
+  max_size_mm: 300
+
+output:
+  case_folder_name: ''
+
+materials:
+  main:
+    - Arm
+    - Cover
+    - Cuff
+    - GripperHand
+    - ThumbReg
+  flexible:
+    - WristCompressionBushing
+  support:
+    - Thermoform1
+    - Thermoform2
+    - Thermoform3

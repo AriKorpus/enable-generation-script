@@ -1,0 +1,78 @@
+num_workers: 4
+
+paths:
+  scad_file: 'source/Kwawu_2.0_Prosthetic_Arm-_Socket_Version.scad'
+  output_dir: '../../output'
+
+csv_to_scad:
+  LeftRight: 1
+  ArmLength: 2
+  ForearmCircumference: 3
+  BicepCircumference: 4
+  AdditionalHandScale: 5
+
+param_options:
+  LeftRight: [Left, Right]
+  VentingHoles: [None, VentingHoles1, VentingHoles2, VentingHoles3]
+
+openscad:
+  executable_path: '/Applications/OpenSCAD.app/Contents/MacOS/OpenSCAD'
+
+scad_params:
+  PaddingThickness: 4
+  PalmBoltDiameter: 4
+  ElbowBoltDiameter: 6
+  TensionerBoltDiameter: 2
+  GripLatch: 'Yes'
+  PencilHolder: 'Yes'
+  VentingHoles: 'None'
+
+splittable_parts:
+  - name: Arm
+    param: ArmPieces
+    options:
+      - pieces: 1
+        parts: [Arm1]
+      - pieces: 2
+        parts: [Arm1, Arm2]
+
+stl_validation:
+  max_size_mm: 300
+
+output:
+  case_folder_name: ''
+
+materials:
+  main:
+    - Arm
+    - Cuff
+    - Palm
+    - PalmTop
+    - WristBolt
+    - Tensioner
+    - IndexFingerEnd
+    - IndexFingerPhalanx
+    - MiddleFingerEnd
+    - MiddleFingerPhalanx
+    - PinkyFingerEnd
+    - PinkyFingerPhalanx
+    - RingFingerEnd
+    - RingFingerPhalanx
+    - ThumbEnd
+    - ThumbPhalanx
+    - WhippleTreePrimary
+    - WhippleTreeSecondary
+    - LatchSlider
+    - LatchPin
+    - LatchTeeth
+  flexible:
+    - Hinge4Knuckles
+    - HingeIndexFinger
+    - HingeMiddleFinger
+    - HingePinkyFinger
+    - HingeRingFinger
+    - HingeThumb
+    - HingeThumbKnukle
+    - PencilHolderCover
+    - WristCompressionBushing
+    - LatchHinge
